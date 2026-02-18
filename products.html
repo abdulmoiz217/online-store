@@ -42,30 +42,26 @@
         </div>
     </main>
 
+    <!-- Neon DB API Integration -->
+    <script src="neon-api.js"></script>
     <script src="script.js"></script>
     <script src="sync_script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof loadAllProducts === 'function') {
-                loadAllProducts();
-            } else {
-                console.log('loadAllProducts function not found');
-            }
-
-            // Add event listeners for filters if functions exist
+            // Products are loaded automatically by script.js
+            
+            // Add event listeners for filters
             const categoryFilter = document.getElementById('category-filter');
             const priceFilter = document.getElementById('price-filter');
-            
-            if (categoryFilter && typeof loadAllProducts === 'function') {
+
+            if (categoryFilter) {
                 categoryFilter.addEventListener('change', loadAllProducts);
             }
-            
+
             if (priceFilter) {
                 priceFilter.addEventListener('input', function(e) {
                     document.getElementById('price-value').textContent = e.target.value;
-                    if (typeof loadAllProducts === 'function') {
-                        loadAllProducts();
-                    }
+                    loadAllProducts();
                 });
             }
         });

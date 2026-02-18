@@ -1,16 +1,11 @@
 // ========================================
-// ShoeStore - API-Enabled Script
-// Fetches products from Neon DB
+// ShoeStore - Neon DB Integration
+// Fetches products from Neon DB REST API
 // ========================================
 
 // Currency conversion constants
 const USD_TO_PKR_RATE = 300;
 const SHIPPING_COST_PKR = 500;
-
-// API Base URL (auto-detects based on environment)
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000/api' 
-  : '/api';
 
 // Global products array
 let products = [];
@@ -19,43 +14,22 @@ let products = [];
 // PRODUCT FUNCTIONS
 // ========================================
 
-// Fetch products from API
+// Fetch products from Neon DB API
 async function loadProductsFromAPI() {
   try {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    if (!response.ok) throw new Error('Failed to fetch products');
-    products = await response.json();
-    console.log(`✅ Loaded ${products.length} products from database`);
+    products = await fetchProducts();
+    console.log(`✅ Loaded ${products.length} products from Neon DB`);
     return products;
   } catch (error) {
     console.error('❌ Error loading products:', error.message);
-    // Fallback to localStorage if API fails
-    loadProductsFromStorage();
-    return products;
-  }
-}
-
-// Load products from localStorage (fallback)
-function loadProductsFromStorage() {
-  const storedProducts = localStorage.getItem('products');
-  if (storedProducts) {
-    try {
-      products = JSON.parse(storedProducts);
-      console.log(`⚠️ Loaded ${products.length} products from localStorage (fallback)`);
-    } catch (e) {
-      console.error('Error parsing localStorage products:', e);
-      products = [];
-    }
+    showNotification('Failed to load products', 'error');
+    return [];
   }
 }
 
 // Currency conversion functions
 function usdToPkr(usdAmount) {
   return usdAmount * USD_TO_PKR_RATE;
-}
-
-function pkrToUsd(pkrAmount) {
-  return pkrAmount / USD_TO_PKR_RATE;
 }
 
 function getShippingCost() {
@@ -66,7 +40,7 @@ function getShippingCost() {
 // DISPLAY FUNCTIONS
 // ========================================
 
-// Function to load featured products
+// Function to load featured products (for index.html)
 async function loadFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) return;
@@ -87,20 +61,20 @@ async function loadFeaturedProducts() {
   featuredProducts.forEach(product => {
     const productCard = document.createElement('div');
     productCard.className = 'product-card';
-    const pricePKR = (product.price).toFixed(2);
+    const pricePKR = parseFloat(product.price).toFixed(2);
     productCard.innerHTML = `
       <img src="${product.image}" alt="${product.name}" class="product-image">
       <h3 class="product-name">${product.name}</h3>
       <p class="product-price">Rs ${pricePKR}</p>
       <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
-      <p class="product-description">${product.description}</p>
+      <p class="product-description">${product.description || ''}</p>
       <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
     `;
     container.appendChild(productCard);
   });
 }
 
-// Function to load all products
+// Function to load all products (for products.html)
 async function loadAllProducts() {
   const container = document.getElementById('products-container');
   if (!container) return;
@@ -112,23 +86,34 @@ async function loadAllProducts() {
 
   container.innerHTML = '';
 
-  const availableProducts = products.filter(p => !p.sold);
+  // Get filter values
+  const categoryFilter = document.getElementById('category-filter')?.value || 'all';
+  const priceFilter = document.getElementById('price-filter')?.value || 60000;
+
+  // Filter products
+  let availableProducts = products.filter(p => !p.sold);
+  
+  if (categoryFilter !== 'all') {
+    availableProducts = availableProducts.filter(p => p.category === categoryFilter);
+  }
+  
+  availableProducts = availableProducts.filter(p => parseFloat(p.price) <= parseFloat(priceFilter));
 
   if (availableProducts.length === 0) {
-    container.innerHTML = '<p>No products available yet. Please check back later.</p>';
+    container.innerHTML = '<p>No products available matching your filters.</p>';
     return;
   }
 
   availableProducts.forEach(product => {
     const productCard = document.createElement('div');
     productCard.className = 'product-card';
-    const pricePKR = (product.price).toFixed(2);
+    const pricePKR = parseFloat(product.price).toFixed(2);
     productCard.innerHTML = `
       <img src="${product.image}" alt="${product.name}" class="product-image">
       <h3 class="product-name">${product.name}</h3>
       <p class="product-price">Rs ${pricePKR}</p>
       <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
-      <p class="product-description">${product.description}</p>
+      <p class="product-description">${product.description || ''}</p>
       <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
     `;
     container.appendChild(productCard);
@@ -164,7 +149,7 @@ function addToCart(productId) {
 
   localStorage.setItem('cart', JSON.stringify(cart));
   updateCartCount();
-  alert(`${product.name} added to cart!`);
+  showNotification(`${product.name} added to cart!`, 'success');
 }
 
 function updateCartCount() {
@@ -182,21 +167,10 @@ function updateCartCount() {
 // Apply store settings
 async function applyStoreSettings() {
   try {
-    // Try to fetch from API first
-    const response = await fetch(`${API_BASE_URL}/settings`);
-    if (response.ok) {
-      const settings = await response.json();
-      updateStoreUI(settings);
-      return;
-    }
-  } catch (error) {
-    console.log('Using localStorage for settings');
-  }
-
-  // Fallback to localStorage
-  const settings = JSON.parse(localStorage.getItem('store-settings') || '{}');
-  if (settings && Object.keys(settings).length > 0) {
+    const settings = await fetchSettings();
     updateStoreUI(settings);
+  } catch (error) {
+    console.log('Using default settings');
   }
 }
 
@@ -204,13 +178,13 @@ function updateStoreUI(settings) {
   // Update logo/text in navigation
   const logoElements = document.querySelectorAll('.logo');
   logoElements.forEach(logo => {
-    logo.textContent = settings.store_name || settings.name || 'ShoeStore';
+    logo.textContent = settings.store_name || 'ShoeStore';
   });
 
   // Update page title
-  const storeName = settings.store_name || settings.name || 'ShoeStore';
+  const storeName = settings.store_name || 'ShoeStore';
   if (storeName) {
-    document.title = `${storeName} - Home`;
+    document.title = `${storeName}`;
   }
 
   // Update contact information on contact page
@@ -242,7 +216,7 @@ function updateContactInfo(settings) {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log('🚀 ShoeStore initializing...');
+  console.log('🚀 ShoeStore initializing with Neon DB...');
   
   // Load products from API
   await loadProductsFromAPI();

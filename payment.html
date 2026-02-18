@@ -430,6 +430,7 @@
     </main>
 
     <script src="script.js"></script>
+    <script src="neon-api.js"></script>
     <script>
         // Current step in the payment process
         let currentStep = 'information'; // 'information', 'payment', 'confirmation'
@@ -615,7 +616,7 @@
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const orderTotal = document.getElementById('order-total').textContent;
 
-            // Save order to API (Neon DB)
+            // Save order to Neon DB
             try {
                 const orderData = {
                     items: cart,
@@ -625,25 +626,11 @@
                     verification: verificationData
                 };
 
-                console.log('Placing order:', orderData);
+                console.log('Placing order in Neon DB:', orderData);
 
-                // Determine API base URL
-                const API_BASE_URL = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000/api' 
-                    : '/api';
-
-                const response = await fetch(`${API_BASE_URL}/orders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to place order');
-                }
-
-                const result = await response.json();
-                console.log('Order placed successfully:', result.order.id);
+                // Place order via API
+                const result = await placeOrder(orderData);
+                console.log('Order placed successfully:', result.id);
 
                 // Clear cart after successful order
                 localStorage.removeItem('cart');
