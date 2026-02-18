@@ -1,234 +1,267 @@
+// ========================================
+// ShoeStore - API-Enabled Script
+// Fetches products from Neon DB
+// ========================================
+
 // Currency conversion constants
-const USD_TO_PKR_RATE = 300; // 1 USD = 300 PKR (adjust as needed)
-const SHIPPING_COST_PKR = 500; // Fixed shipping cost in PKR
+const USD_TO_PKR_RATE = 300;
+const SHIPPING_COST_PKR = 500;
+
+// API Base URL (auto-detects based on environment)
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000/api' 
+  : '/api';
+
+// Global products array
+let products = [];
+
+// ========================================
+// PRODUCT FUNCTIONS
+// ========================================
+
+// Fetch products from API
+async function loadProductsFromAPI() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products`);
+    if (!response.ok) throw new Error('Failed to fetch products');
+    products = await response.json();
+    console.log(`✅ Loaded ${products.length} products from database`);
+    return products;
+  } catch (error) {
+    console.error('❌ Error loading products:', error.message);
+    // Fallback to localStorage if API fails
+    loadProductsFromStorage();
+    return products;
+  }
+}
+
+// Load products from localStorage (fallback)
+function loadProductsFromStorage() {
+  const storedProducts = localStorage.getItem('products');
+  if (storedProducts) {
+    try {
+      products = JSON.parse(storedProducts);
+      console.log(`⚠️ Loaded ${products.length} products from localStorage (fallback)`);
+    } catch (e) {
+      console.error('Error parsing localStorage products:', e);
+      products = [];
+    }
+  }
+}
 
 // Currency conversion functions
 function usdToPkr(usdAmount) {
-    return usdAmount * USD_TO_PKR_RATE;
+  return usdAmount * USD_TO_PKR_RATE;
 }
 
 function pkrToUsd(pkrAmount) {
-    return pkrAmount / USD_TO_PKR_RATE;
+  return pkrAmount / USD_TO_PKR_RATE;
 }
 
 function getShippingCost() {
-    return SHIPPING_COST_PKR;
+  return SHIPPING_COST_PKR;
 }
 
-// Simple product management system
-let products = [];
-
-// Load products from localStorage if available
-function loadProductsFromStorage() {
-    const storedProducts = localStorage.getItem('products');
-    if (storedProducts) {
-        try {
-            const parsedProducts = JSON.parse(storedProducts);
-            // Validate and add products with proper data
-            parsedProducts.forEach(product => {
-                if (product.name && product.name.trim() !== '' && 
-                    product.price != null && !isNaN(parseFloat(product.price)) && 
-                    parseFloat(product.price) > 0) {
-                    // Check if product already exists (avoid duplicates)
-                    const exists = products.some(p => p.id === product.id);
-                    if (!exists) {
-                        products.push(product);
-                    }
-                }
-            });
-        } catch (e) {
-            console.log('Error loading products from localStorage');
-        }
-    }
-}
-
-// Save products to localStorage
-function saveProductsToStorage() {
-    localStorage.setItem('products', JSON.stringify(products));
-}
-
-// Initialize products from storage
-loadProductsFromStorage();
+// ========================================
+// DISPLAY FUNCTIONS
+// ========================================
 
 // Function to load featured products
-function loadFeaturedProducts() {
-    const container = document.getElementById('featured-products');
-    if (!container) return;
+async function loadFeaturedProducts() {
+  const container = document.getElementById('featured-products');
+  if (!container) return;
 
-    const featuredProducts = products.filter(p => !p.sold).slice(0, 4);
-    container.innerHTML = '';
+  // Ensure products are loaded
+  if (products.length === 0) {
+    await loadProductsFromAPI();
+  }
 
-    if (featuredProducts.length === 0) {
-        container.innerHTML = '<p>No products available yet. Please check back later.</p>';
-        return;
-    }
+  const featuredProducts = products.filter(p => !p.sold).slice(0, 4);
+  container.innerHTML = '';
 
-    featuredProducts.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
-        // Convert price from USD to PKR
-        const pricePKR = usdToPkr(product.price).toFixed(2);
-        productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image">
-            <h3 class="product-name">${product.name}</h3>
-            <p class="product-price">Rs ${pricePKR}</p>
-            <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
-            <p class="product-description">${product.description}</p>
-            <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
-        `;
-        container.appendChild(productCard);
-    });
+  if (featuredProducts.length === 0) {
+    container.innerHTML = '<p>No products available yet. Please check back later.</p>';
+    return;
+  }
+
+  featuredProducts.forEach(product => {
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+    const pricePKR = (product.price).toFixed(2);
+    productCard.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" class="product-image">
+      <h3 class="product-name">${product.name}</h3>
+      <p class="product-price">Rs ${pricePKR}</p>
+      <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
+      <p class="product-description">${product.description}</p>
+      <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
+    `;
+    container.appendChild(productCard);
+  });
 }
 
 // Function to load all products
-function loadAllProducts() {
-    const container = document.getElementById('products-container');
-    if (!container) return;
+async function loadAllProducts() {
+  const container = document.getElementById('products-container');
+  if (!container) return;
 
-    container.innerHTML = '';
+  // Ensure products are loaded
+  if (products.length === 0) {
+    await loadProductsFromAPI();
+  }
 
-    const availableProducts = products.filter(p => !p.sold);
+  container.innerHTML = '';
 
-    if (availableProducts.length === 0) {
-        container.innerHTML = '<p>No products available yet. Please check back later.</p>';
-        return;
-    }
+  const availableProducts = products.filter(p => !p.sold);
 
-    availableProducts.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
-        // Convert price from USD to PKR
-        const pricePKR = usdToPkr(product.price).toFixed(2);
-        productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image">
-            <h3 class="product-name">${product.name}</h3>
-            <p class="product-price">Rs ${pricePKR}</p>
-            <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
-            <p class="product-description">${product.description}</p>
-            <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
-        `;
-        container.appendChild(productCard);
-    });
+  if (availableProducts.length === 0) {
+    container.innerHTML = '<p>No products available yet. Please check back later.</p>';
+    return;
+  }
+
+  availableProducts.forEach(product => {
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+    const pricePKR = (product.price).toFixed(2);
+    productCard.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" class="product-image">
+      <h3 class="product-name">${product.name}</h3>
+      <p class="product-price">Rs ${pricePKR}</p>
+      <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
+      <p class="product-description">${product.description}</p>
+      <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
+    `;
+    container.appendChild(productCard);
+  });
 }
 
-// Shopping cart functionality
+// ========================================
+// CART FUNCTIONS
+// ========================================
+
+// Shopping cart functionality (localStorage for user-specific cart)
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
 function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+  const product = products.find(p => p.id === productId);
+  if (!product) {
+    alert('Product not found!');
+    return;
+  }
 
-    const existingItem = cart.find(item => item.id === productId);
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        // Store the original USD price in the cart
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price, // Keep original USD price
-            image: product.image,
-            quantity: 1
-        });
-    }
+  const existingItem = cart.find(item => item.id === productId);
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    });
+  }
 
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    alert(`${product.name} added to cart!`);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+  alert(`${product.name} added to cart!`);
 }
 
 function updateCartCount() {
-    const count = cart.reduce((total, item) => total + item.quantity, 0);
-    const cartCountElements = document.querySelectorAll('#cart-count');
-    cartCountElements.forEach(element => {
-        element.textContent = count.toString();
-    });
+  const count = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartCountElements = document.querySelectorAll('#cart-count');
+  cartCountElements.forEach(element => {
+    element.textContent = count.toString();
+  });
 }
 
-// Apply store settings to the website
-function applyStoreSettings() {
-    // Get store settings from localStorage
-    const settings = JSON.parse(localStorage.getItem('store-settings') || null);
-    
-    if (settings) {
-        // Update logo/text in navigation
-        const logoElements = document.querySelectorAll('.logo');
-        logoElements.forEach(logo => {
-            logo.textContent = settings.name || 'ShoeStore';
-        });
-        
-        // Update page titles if needed
-        if (settings.name) {
-            document.title = `${settings.name} - Home`;
-        }
-        
-        // Update contact information if on contact page
-        // Find the contact item with "Address" header and update its paragraph
-        const addressItems = document.querySelectorAll('.contact-item');
-        addressItems.forEach(item => {
-            const header = item.querySelector('h3');
-            if (header && header.textContent.trim() === 'Address') {
-                const pTag = item.querySelector('p');
-                if (pTag) {
-                    pTag.textContent = settings.address || 'Default Address';
-                }
-            }
-        });
+// ========================================
+// STORE SETTINGS
+// ========================================
 
-        // Find the contact item with "Phone" header and update its paragraph
-        const phoneItems = document.querySelectorAll('.contact-item');
-        phoneItems.forEach(item => {
-            const header = item.querySelector('h3');
-            if (header && header.textContent.trim() === 'Phone') {
-                const pTag = item.querySelector('p');
-                if (pTag) {
-                    pTag.textContent = settings.contact || 'Default Phone';
-                }
-            }
-        });
-
-        // Find the contact item with "Email" header and update its paragraph
-        const emailItems = document.querySelectorAll('.contact-item');
-        emailItems.forEach(item => {
-            const header = item.querySelector('h3');
-            if (header && header.textContent.trim() === 'Email') {
-                const pTag = item.querySelector('p');
-                if (pTag) {
-                    pTag.textContent = settings.email || 'default@email.com';
-                }
-            }
-        });
+// Apply store settings
+async function applyStoreSettings() {
+  try {
+    // Try to fetch from API first
+    const response = await fetch(`${API_BASE_URL}/settings`);
+    if (response.ok) {
+      const settings = await response.json();
+      updateStoreUI(settings);
+      return;
     }
+  } catch (error) {
+    console.log('Using localStorage for settings');
+  }
+
+  // Fallback to localStorage
+  const settings = JSON.parse(localStorage.getItem('store-settings') || '{}');
+  if (settings && Object.keys(settings).length > 0) {
+    updateStoreUI(settings);
+  }
 }
 
-// Listen for changes in localStorage from other tabs
-window.addEventListener('storage', function(e) {
-    // If settings were updated in another tab, refresh them
-    if (e.key === 'settings-update' || e.key === 'store-settings' || e.key === 'products') {
-        // Small delay to ensure the data is written before reading
-        setTimeout(() => {
-            applyStoreSettings();
-            
-            // If on a product page, reload products
-            if (document.getElementById('featured-products')) {
-                loadFeaturedProducts();
-            }
-            if (document.getElementById('products-container')) {
-                loadAllProducts();
-            }
-        }, 100);
+function updateStoreUI(settings) {
+  // Update logo/text in navigation
+  const logoElements = document.querySelectorAll('.logo');
+  logoElements.forEach(logo => {
+    logo.textContent = settings.store_name || settings.name || 'ShoeStore';
+  });
+
+  // Update page title
+  const storeName = settings.store_name || settings.name || 'ShoeStore';
+  if (storeName) {
+    document.title = `${storeName} - Home`;
+  }
+
+  // Update contact information on contact page
+  updateContactInfo(settings);
+}
+
+function updateContactInfo(settings) {
+  const contactItems = document.querySelectorAll('.contact-item');
+  contactItems.forEach(item => {
+    const header = item.querySelector('h3');
+    if (!header) return;
+
+    const pTag = item.querySelector('p');
+    if (!pTag) return;
+
+    if (header.textContent.trim() === 'Address' && settings.address) {
+      pTag.textContent = settings.address;
+    } else if (header.textContent.trim() === 'Phone' && settings.contact) {
+      pTag.textContent = settings.contact;
+    } else if (header.textContent.trim() === 'Email' && settings.email) {
+      pTag.textContent = settings.email;
     }
-});
+  });
+}
+
+// ========================================
+// INITIALIZATION
+// ========================================
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    updateCartCount();
-    applyStoreSettings(); // Apply store settings
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🚀 ShoeStore initializing...');
+  
+  // Load products from API
+  await loadProductsFromAPI();
+  
+  // Update cart count
+  updateCartCount();
+  
+  // Apply store settings
+  applyStoreSettings();
 
-    if (document.getElementById('featured-products')) {
-        loadFeaturedProducts();
-    }
-    if (document.getElementById('products-container')) {
-        loadAllProducts();
-    }
+  // Load featured products on home page
+  if (document.getElementById('featured-products')) {
+    loadFeaturedProducts();
+  }
+  
+  // Load all products on products page
+  if (document.getElementById('products-container')) {
+    loadAllProducts();
+  }
+  
+  console.log('✅ ShoeStore initialized successfully');
 });

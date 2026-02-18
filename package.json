@@ -1,17 +1,26 @@
 {
   "name": "shoestore-website",
-  "version": "1.0.0",
-  "description": "Online shoe store with admin panel - Pure static site",
+  "version": "2.0.0",
+  "description": "Online shoe store with Neon DB backend",
   "scripts": {
     "start": "npx serve .",
-    "dev": "npx serve ."
+    "dev": "npx serve .",
+    "setup-db": "node scripts/setup-database.js"
   },
   "keywords": [
     "shoe",
     "store",
     "ecommerce",
-    "static-site"
+    "neon-db",
+    "vercel"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/node": "^3.0.0",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  }
 }

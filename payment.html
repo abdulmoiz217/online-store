@@ -615,30 +615,44 @@
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const orderTotal = document.getElementById('order-total').textContent;
 
-            // Save order to localStorage
+            // Save order to API (Neon DB)
             try {
-                const order = {
-                    id: Date.now(),
+                const orderData = {
                     items: cart,
                     total: parseFloat(orderTotal),
                     customer_info: customerInfo,
                     payment_method: paymentMethod.value,
-                    verification: verificationData,
-                    date: new Date().toISOString(),
-                    status: "pending_verification"
+                    verification: verificationData
                 };
 
-                const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-                existingOrders.push(order);
-                localStorage.setItem('orders', JSON.stringify(existingOrders));
+                console.log('Placing order:', orderData);
 
-                console.log('Order saved successfully:', order.id);
+                // Determine API base URL
+                const API_BASE_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000/api' 
+                    : '/api';
+
+                const response = await fetch(`${API_BASE_URL}/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to place order');
+                }
+
+                const result = await response.json();
+                console.log('Order placed successfully:', result.order.id);
+
+                // Clear cart after successful order
+                localStorage.removeItem('cart');
 
                 // Proceed to complete order
                 completeOrder();
             } catch (error) {
-                console.error('Error saving order:', error);
-                alert('Error saving order. Please try again. Details: ' + error.message);
+                console.error('Error placing order:', error);
+                alert('Error placing order. Please try again. Details: ' + error.message);
             }
         }
 
