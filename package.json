@@ -7,6 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'Building for Vercel...'",
+    "vercel": "vercel",
+    "vercel-prod": "vercel --prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

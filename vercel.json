@@ -3,24 +3,15 @@
   "name": "shoestore-website",
   "builds": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "**/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "**/*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "**/*.js",
-      "use": "@vercel/static",
-      "exclude": ["api/**"]
+      "src": "package.json",
+      "use": "@vercel/static-build"
     }
   ],
+  "outputDirectory": "public",
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
