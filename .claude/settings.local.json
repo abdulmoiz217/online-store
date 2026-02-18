@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm install typescript)",
+      "Bash(npm install typescript --save-dev)",
+      "Bash(pip install:*)"
+    ]
+  }
+}

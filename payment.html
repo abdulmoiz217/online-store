@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoe Store - Payment</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .payment-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .payment-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            background-color: white;
+            padding: 0 10px;
+        }
+        .step.active {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .step.completed {
+            color: #27ae60;
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        .step.active .step-number {
+            background-color: #3498db;
+            color: white;
+        }
+        .step.completed .step-number {
+            background-color: #27ae60;
+            color: white;
+        }
+        .payment-section {
+            display: none;
+        }
+        .payment-section.active {
+            display: block;
+        }
+        .secure-payment-badge {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #e8f4fd;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .payment-option {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .payment-option:hover {
+            border-color: #3498db;
+            background-color: #f8f9fa;
+        }
+        .payment-option.selected {
+            border-color: #3498db;
+            background-color: #e8f4fd;
+        }
+        .payment-option input {
+            display: none;
+        }
+        .payment-option-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            font-size: 20px;
+        }
+        .easypaisa-icon { background-color: #00A651; color: white; }
+        .meezan-icon { background-color: #003E7D; color: white; }
+        .cod-icon { background-color: #f39c12; color: white; }
+        .whatsapp-icon { background-color: #25D366; color: white; }
+        .payment-details {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+        .payment-details.active {
+            display: block;
+        }
+        .order-review {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .review-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 15px 0;
+            border-top: 2px solid #ddd;
+            margin-top: 10px;
+        }
+        .account-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .account-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 5px 0;
+        }
+        .account-name {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #856404;
+        }
+        .whatsapp-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #25D366;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+        .payment-success {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            font-size: 24px;
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        .order-number {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .continue-shopping-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .track-order-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">ShoeStore</div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="products.html" class="nav-link">Products</a></li>
+                <li><a href="cart.html" class="nav-link active">Cart (<span id="cart-count">0</span>)</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="payment-content">
+        <h1>Secure Checkout</h1>
+
+        <div class="payment-steps">
+            <div class="step completed">
+                <div class="step-number">1</div>
+                <div>Cart</div>
+            </div>
+            <div class="step active">
+                <div class="step-number">2</div>
+                <div>Information</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>Payment</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>Confirmation</div>
+            </div>
+        </div>
+
+        <div class="secure-payment-badge">
+            🔒 Advance Payment Only | Your information is protected
+        </div>
+
+        <div id="information-section" class="payment-section active">
+            <div class="order-review">
+                <h2>Order Review</h2>
+                <div id="order-items">
+                    <!-- Order items will be loaded here -->
+                </div>
+                <div class="review-total">
+                    <span>Total:</span>
+                    <span>Rs <span id="order-total">0.00</span></span>
+                </div>
+            </div>
+
+            <div class="billing-info">
+                <h2>Billing Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first-name">First Name</label>
+                        <input type="text" id="first-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">Last Name</label>
+                        <input type="text" id="last-name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" required>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="continue-to-payment">Continue to Payment</button>
+        </div>
+
+        <div id="payment-section" class="payment-section">
+            <h2>Choose Payment Method</h2>
+
+            <div class="payment-option" onclick="selectPaymentMethod('easypaisa')">
+                <input type="radio" id="easypaisa" name="payment-method" value="easypaisa">
+                <label for="easypaisa" class="payment-option-label">
+                    <div class="payment-icon easypaisa-icon">📱</div>
+                    <div>
+                        <h3>EasyPaisa</h3>
+                        <p>Pay with your EasyPaisa account</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="payment-option" onclick="selectPaymentMethod('meezan')">
+                <input type="radio" id="meezan" name="payment-method" value="meezan">
+                <label for="meezan" class="payment-option-label">
+                    <div class="payment-icon meezan-icon">🏦</div>
+                    <div>
+                        <h3>Meezan Bank</h3>
+                        <p>Pay with your Meezan account</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="payment-details" id="easypaisa-details">
+                <h3>EasyPaisa Account Details</h3>
+                <div class="account-info">
+                    <div class="account-number">03333969430</div>
+                    <div class="account-name">Ayesha Shabbir</div>
+                </div>
+                <div class="instructions">
+                    <p><strong>Instructions:</strong></p>
+                    <ol>
+                        <li>Open EasyPaisa app or dial *786#</li>
+                        <li>Select "Send Money" or "EasyLoad"</li>
+                        <li>Enter the account number: 03333969430</li>
+                        <li>Enter the amount: Rs <span id="easypaisa-amount">0.00</span></li>
+                        <li>Enter your name and reference</li>
+                        <li>Confirm the transaction</li>
+                    </ol>
+                </div>
+                
+                <div id="easypaisa-verification" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; display: none;">
+                    <h4>Payment Verification</h4>
+                    <div class="form-group">
+                        <label for="transaction-id-easypaisa">Transaction ID:</label>
+                        <input type="text" id="transaction-id-easypaisa" placeholder="Enter your transaction ID" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px;" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="screenshot-upload-easypaisa">Upload Payment Screenshot:</label>
+                        <input type="file" id="screenshot-upload-easypaisa" accept=".jpg,.jpeg,.png,.gif,.webp" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px;" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-details" id="meezan-details">
+                <h3>Meezan Bank Account Details</h3>
+                <div class="account-info">
+                    <div class="account-number">9988-0113285758</div>
+                    <div class="account-name">Ayesha Shabbir</div>
+                </div>
+                
+                <div class="instructions">
+                    <p><strong>Instructions:</strong></p>
+                    <ol>
+                        <li>Open Meezan Mobile App or Internet Banking</li>
+                        <li>Select "Transfer Funds" or "Bill Payment"</li>
+                        <li>Enter the account number: 9988-0113285758</li>
+                        <li>Enter the amount: Rs <span id="meezan-amount">0.00</span></li>
+                        <li>Complete the transfer</li>
+                    </ol>
+                </div>
+                
+                <div id="meenzan-verification" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; display: none;">
+                    <h4>Payment Verification</h4>
+                    <div class="form-group">
+                        <label for="transaction-id-meezan">Reference Number (Optional):</label>
+                        <input type="text" id="transaction-id-meezan" placeholder="Enter reference number if available" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="screenshot-upload-meezan">Upload Payment Screenshot:</label>
+                        <input type="file" id="screenshot-upload-meezan" accept=".jpg,.jpeg,.png,.gif,.webp" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px;" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-details" id="cod-details" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h3>Cash on Delivery</h3>
+                <p>You will pay when your order is delivered to your doorstep.</p>
+            </div>
+
+            <div class="whatsapp-section">
+                <h3>Send Payment Confirmation</h3>
+                <p>After making payment, please send the screenshot of your transaction to our WhatsApp:</p>
+                <a href="https://wa.me/923322942248" target="_blank" class="whatsapp-btn">
+                    <span>💬</span> Chat on WhatsApp
+                </a>
+            </div>
+
+            <button class="btn-primary" id="place-order-btn" style="margin-top: 20px;">Place Order</button>
+            <button class="btn-primary" id="back-to-info" style="background-color: #95a5a6; margin-left: 10px;">Back</button>
+        </div>
+
+        <div id="confirmation-section" class="payment-section">
+            <div class="payment-success">
+                <div class="success-icon">✓</div>
+                <h2 class="success-message">Order Placed Successfully!</h2>
+                <p class="order-number">Order #<span id="order-number">000000</span></p>
+                <p>Thank you for your purchase. Your order has been confirmed and will be processed shortly.</p>
+                <p><strong>Important:</strong> Please send the payment confirmation screenshot to our WhatsApp: <a href="https://wa.me/923322942248" target="_blank">03322942248</a></p>
+                
+                <div style="margin-top: 30px;">
+                    <button class="continue-shopping-btn" onclick="window.location.href='index.html'">Continue Shopping</button>
+                    <a href="https://wa.me/923322942248" target="_blank" class="whatsapp-btn">
+                        <span>💬</span> Send Payment Proof
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        // Current step in the payment process
+        let currentStep = 'information'; // 'information', 'payment', 'confirmation'
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrderSummary();
+
+            // Event listeners
+            document.getElementById('continue-to-payment').addEventListener('click', goToPayment);
+            document.getElementById('place-order-btn').addEventListener('click', placeOrder);
+            document.getElementById('back-to-info').addEventListener('click', () => showStep('information'));
+        });
+
+        function loadOrderSummary() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const orderItemsContainer = document.getElementById('order-items');
+            const orderTotalElement = document.getElementById('order-total');
+
+            orderItemsContainer.innerHTML = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                // Convert USD to PKR (assuming 1 USD = 300 PKR - adjust as needed)
+                // Note: item.price is stored in USD, so we multiply by exchange rate once
+                const itemPricePKR = item.price * 300;
+                const itemTotal = itemPricePKR * item.quantity;
+                total += itemTotal;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'review-item';
+                itemDiv.innerHTML = `
+                    <span>${item.name} x${item.quantity}</span>
+                    <span>Rs ${itemTotal.toFixed(2)}</span>
+                `;
+                orderItemsContainer.appendChild(itemDiv);
+            });
+
+            // Total is already in PKR since we calculated it above
+            orderTotalElement.textContent = total.toFixed(2);
+
+            // Update amounts in payment details
+            document.getElementById('easypaisa-amount').textContent = total.toFixed(2);
+            document.getElementById('meezan-amount').textContent = total.toFixed(2);
+        }
+
+        function goToPayment() {
+            // Validate billing information
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+
+            if (!firstName || !lastName || !email || !phone || !address || !city) {
+                alert('Please fill in all billing information.');
+                return;
+            }
+
+            showStep('payment');
+        }
+
+        function selectPaymentMethod(method) {
+            // Deselect all payment options
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Select clicked option
+            event.currentTarget.classList.add('selected');
+            
+            // Update radio button
+            document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
+                radio.checked = radio.value === method;
+            });
+
+            // Show/hide payment details and verification forms
+            document.getElementById('easypaisa-details').classList.remove('active');
+            document.getElementById('meezan-details').classList.remove('active');
+            document.getElementById('easypaisa-verification').style.display = 'none';
+            document.getElementById('meenzan-verification').style.display = 'none';
+
+            if (method === 'easypaisa') {
+                document.getElementById('easypaisa-details').classList.add('active');
+                document.getElementById('easypaisa-verification').style.display = 'block';
+            } else if (method === 'meezan') {
+                document.getElementById('meezan-details').classList.add('active');
+                document.getElementById('meenzan-verification').style.display = 'block';
+            }
+        }
+
+        function showStep(step) {
+            // Hide all sections
+            document.querySelectorAll('.payment-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(`${step}-section`).classList.add('active');
+
+            // Update steps indicator
+            if (step === 'information') {
+                document.querySelectorAll('.step')[1].classList.add('active');
+                document.querySelectorAll('.step')[1].classList.remove('completed');
+                document.querySelectorAll('.step')[2].classList.remove('active', 'completed');
+                document.querySelectorAll('.step')[3].classList.remove('active', 'completed');
+            } else if (step === 'payment') {
+                document.querySelectorAll('.step')[1].classList.remove('active');
+                document.querySelectorAll('.step')[1].classList.add('completed');
+                document.querySelectorAll('.step')[2].classList.add('active');
+                document.querySelectorAll('.step')[2].classList.remove('completed');
+                document.querySelectorAll('.step')[3].classList.remove('active', 'completed');
+            } else if (step === 'confirmation') {
+                document.querySelectorAll('.step')[1].classList.add('completed');
+                document.querySelectorAll('.step')[2].classList.add('completed');
+                document.querySelectorAll('.step')[2].classList.remove('active');
+                document.querySelectorAll('.step')[3].classList.add('active');
+                document.querySelectorAll('.step')[3].classList.add('completed');
+            }
+
+            currentStep = step;
+        }
+
+
+        async function placeOrder() {
+            const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+            
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return;
+            }
+
+            // Collect verification data for EasyPaisa or Meezan
+            let verificationData = {};
+            if (paymentMethod.value === 'easypaisa') {
+                const transactionId = document.getElementById('transaction-id-easypaisa').value;
+                const screenshotFile = document.getElementById('screenshot-upload-easypaisa').files[0];
+                
+                if (!transactionId) {
+                    alert('Please enter your transaction ID for EasyPaisa payment.');
+                    return;
+                }
+                
+                if (!screenshotFile) {
+                    alert('Please upload a screenshot of your payment for EasyPaisa payment.');
+                    return;
+                }
+                
+                // Convert screenshot to base64
+                verificationData = {
+                    transactionId: transactionId,
+                    paymentMethod: 'easypaisa',
+                    screenshot: await fileToBase64(screenshotFile)
+                };
+            } else if (paymentMethod.value === 'meezan') {
+                const transactionId = document.getElementById('transaction-id-meezan').value;
+                const screenshotFile = document.getElementById('screenshot-upload-meezan').files[0];
+                
+                if (!screenshotFile) {
+                    alert('Please upload a screenshot of your payment for Meezan Bank payment.');
+                    return;
+                }
+                
+                // Convert screenshot to base64
+                verificationData = {
+                    transactionId: transactionId, // Can be empty for Meezan
+                    paymentMethod: 'meezan',
+                    screenshot: await fileToBase64(screenshotFile)
+                };
+            }
+
+            // Get customer info from billing section
+            const customerInfo = {
+                firstName: document.getElementById('first-name').value,
+                lastName: document.getElementById('last-name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value
+            };
+
+            // Get cart items and total
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const orderTotal = document.getElementById('order-total').textContent;
+
+            // Save order to localStorage
+            try {
+                const order = {
+                    id: Date.now(),
+                    items: cart,
+                    total: parseFloat(orderTotal),
+                    customer_info: customerInfo,
+                    payment_method: paymentMethod.value,
+                    verification: verificationData,
+                    date: new Date().toISOString(),
+                    status: "pending_verification"
+                };
+
+                const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+                existingOrders.push(order);
+                localStorage.setItem('orders', JSON.stringify(existingOrders));
+
+                console.log('Order saved successfully:', order.id);
+
+                // Proceed to complete order
+                completeOrder();
+            } catch (error) {
+                console.error('Error saving order:', error);
+                alert('Error saving order. Please try again. Details: ' + error.message);
+            }
+        }
+
+        // Helper function to convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    resolve(null);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function completeOrder() {
+            // Generate random order number
+            const orderNumber = Math.floor(100000 + Math.random() * 900000);
+            const orderNumberElement = document.getElementById('order-number');
+            if (orderNumberElement) {
+                orderNumberElement.textContent = orderNumber;
+            }
+
+            // Clear cart
+            localStorage.removeItem('cart');
+            updateCartCount();
+
+            // Show confirmation
+            showStep('confirmation');
+            
+            // Update confirmation message based on payment method
+            const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+            if (paymentMethod && (paymentMethod.value === 'easypaisa' || paymentMethod.value === 'meezan')) {
+                const successMessage = document.querySelector('.success-message');
+                if (successMessage) {
+                    successMessage.textContent = 'Order Submitted for Verification!';
+                    successMessage.style.color = '#f39c12';
+                }
+                
+                const orderNumberEl = document.querySelector('.order-number');
+                if (orderNumberEl) {
+                    orderNumberEl.innerHTML = 'Your order is pending verification. Please check back later for status updates.<br>Order #: <span id="order-number">' + orderNumber + '</span>';
+                }
+            }
+        }
+
+        // Update cart count when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+        });
+    </script>
+</body>
+</html>

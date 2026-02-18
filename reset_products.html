@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reset All Products</h1>
+        <p>This will completely remove all products from your store.</p>
+        <p>After clicking the button, close your browser and reopen it to see changes.</p>
+        <button onclick="resetProducts()">DELETE ALL PRODUCTS NOW</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function resetProducts() {
+            try {
+                localStorage.removeItem('products');
+                document.getElementById('result').innerHTML = '<span style="color: green;">All products have been deleted successfully!</span>';
+                
+                // Wait a moment and then suggest refreshing
+                setTimeout(function() {
+                    if(confirm('Products deleted! Would you like to reload the page?')) {
+                        window.location.reload();
+                    }
+                }, 1000);
+            } catch (e) {
+                document.getElementById('result').innerHTML = '<span style="color: red;">Error: ' + e.message + '</span>';
+            }
+        }
+    </script>
+</body>
+</html>

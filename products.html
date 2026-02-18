@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>onlineStore - Products</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">onlineStore</div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="products.html" class="nav-link active">Products</a></li>
+                <li><a href="cart.html" class="nav-link">Cart (<span id="cart-count">0</span>)</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="products-content">
+        <h1>Our Shoes Collection</h1>
+        <div class="filters">
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+                <option value="sports">Sports</option>
+                <option value="casual">Casual</option>
+                <option value="formal">Formal</option>
+                <option value="watches">Watches</option>
+                <option value="perfumes">Perfumes</option>
+                <option value="itar">Itar</option>
+                <option value="topi">Topi</option>
+                <option value="miswaq">Miswaq</option>
+                <option value="wallets">Wallets</option>
+            </select>
+            <input type="range" id="price-filter" min="0" max="60000" value="60000">
+            <label for="price-filter">Max Price: Rs <span id="price-value">60000</span></label>
+        </div>
+        <div class="product-grid" id="products-container">
+            <!-- Products will be loaded here -->
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="sync_script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof loadAllProducts === 'function') {
+                loadAllProducts();
+            } else {
+                console.log('loadAllProducts function not found');
+            }
+
+            // Add event listeners for filters if functions exist
+            const categoryFilter = document.getElementById('category-filter');
+            const priceFilter = document.getElementById('price-filter');
+            
+            if (categoryFilter && typeof loadAllProducts === 'function') {
+                categoryFilter.addEventListener('change', loadAllProducts);
+            }
+            
+            if (priceFilter) {
+                priceFilter.addEventListener('input', function(e) {
+                    document.getElementById('price-value').textContent = e.target.value;
+                    if (typeof loadAllProducts === 'function') {
+                        loadAllProducts();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# Instructions for Using Your Shoe Store
+
+## Step 1: Add Products
+1. Open `simple_admin.html` in your browser
+2. Fill in the product details:
+   - Product Name (required)
+   - Price in dollars (required, must be a positive number)
+   - Category (required, choose from dropdown)
+   - Description (required)
+   - Optionally upload an image
+3. Click "Add Product"
+4. Repeat for all products you want to add
+
+## Step 2: View Products on Your Website
+1. Open `index.html` or `products.html` in your browser
+2. Your newly added products will appear on the website
+3. Products marked as "Sold" in the admin panel will not appear on the main website
+
+## Step 3: Manage Products
+1. Go back to `simple_admin.html`
+2. To mark a product as sold: click "Mark as Sold" button next to the product
+3. To delete a product: click "Delete" button next to the product
+
+## Notes:
+- All data is stored in your browser's localStorage
+- Clearing browser data will remove all products
+- Products will persist between browser sessions
+- The main website will show only products that are NOT marked as sold
